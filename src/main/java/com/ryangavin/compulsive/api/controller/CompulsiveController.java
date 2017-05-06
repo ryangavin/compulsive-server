@@ -1,13 +1,13 @@
 package com.ryangavin.compulsive.api.controller;
 
 import com.ryangavin.compulsive.api.service.PriceService;
+import com.ryangavin.compulsive.api.service.AddressLookupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -19,10 +19,13 @@ import java.util.Map;
 public class CompulsiveController {
 
     private final PriceService priceService;
+    private final AddressLookupService addressService;
 
     @Autowired
-    public CompulsiveController(PriceService priceService) {
+    public CompulsiveController(PriceService priceService,
+                                AddressLookupService addressService) {
         this.priceService = priceService;
+        this.addressService = addressService;
     }
 
     @RequestMapping("pricing")
@@ -30,11 +33,11 @@ public class CompulsiveController {
         return priceService.getPricing();
     }
 
-    @RequestMapping("walletValue/{crypto}/{wallet}/{fiat}")
-    public BigDecimal getValueOfWallet(@PathVariable String crypto,
-                                       @PathVariable String wallet,
-                                       @PathVariable String fiat) {
-        return BigDecimal.ZERO;
+    @RequestMapping("value/{crypto}/{address}/{fiat}")
+    public BigDecimal getValueOfAddress(@PathVariable String crypto,
+                                        @PathVariable String address,
+                                        @PathVariable String fiat) {
+        return addressService.getValueForAddress(crypto, address, fiat);
     }
 
 }
