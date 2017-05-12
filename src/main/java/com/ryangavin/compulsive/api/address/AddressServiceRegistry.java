@@ -2,6 +2,7 @@ package com.ryangavin.compulsive.api.address;
 
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -11,7 +12,7 @@ import java.util.Map;
 @Service
 public class AddressServiceRegistry {
 
-    private Map<String, AddressService> registry;
+    private Map<String, AddressService> registry = new HashMap<>();
 
     public void register(String crypto, AddressService service) {
         registry.putIfAbsent(crypto, service);

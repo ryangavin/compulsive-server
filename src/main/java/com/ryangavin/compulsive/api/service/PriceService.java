@@ -27,7 +27,8 @@ import java.util.stream.Stream;
 public class PriceService  {
 
     // Subscriptions
-    String[] subscriptions = {"5~CCCAGG~BTC~USD", "5~CCCAGG~ETH~USD"};
+    // TODO make this configurable in the yml
+    private String[] subscriptions = {"5~CCCAGG~BTC~USD", "5~CCCAGG~ETH~USD"};
 
     // Map of Crypto currencies to a Map of Fiat currencies to Values
     @Getter
@@ -37,7 +38,7 @@ public class PriceService  {
     private Socket socket;
 
     @Data
-    public static class CryptoCompareResponse {
+    static class CryptoCompareResponse {
         private Integer messageType;
         private String subscriptionType;
         private String crypto;
@@ -45,7 +46,7 @@ public class PriceService  {
         private Integer flag;
         private BigDecimal price;
 
-        public static CryptoCompareResponse unpack(String message) {
+        static CryptoCompareResponse unpack(String message) {
             String[] split = message.split("~");
 
             CryptoCompareResponse response = new CryptoCompareResponse();
@@ -63,7 +64,7 @@ public class PriceService  {
     }
 
     private void updatePricing(CryptoCompareResponse response) {
-        log.info("Current {} price in {}: {}", response.getCrypto(), response.getFiat(), response.getPrice());
+        log.debug("Current {} price in {}: {}", response.getCrypto(), response.getFiat(), response.getPrice());
         pricing.putIfAbsent(response.getCrypto(), new HashMap<>());
         Map<String, BigDecimal> fiatToCrypto = pricing.get(response.getCrypto());
         fiatToCrypto.put(response.getFiat(), response.getPrice());
@@ -74,24 +75,23 @@ public class PriceService  {
         socket = IO.socket("https://streamer.cryptocompare.com/");
 
         socket
-                .on(Socket.EVENT_CONNECT, args -> {
-                    Map<String, Object> eventArgs = new HashMap<>();
+            .on(Socket.EVENT_CONNECT, args -> {
+                Map<String, Object> eventArgs = new HashMap<>();
 
-                    // TODO make this configurable in the yml
-                    eventArgs.put("subs", Arrays.asList(subscriptions));
+                eventArgs.put("subs", Arrays.asList(subscriptions));
 
-                    socket.emit("SubAdd", eventArgs);
-                })
-                .on("m", args -> Stream.of(args).forEach(arg -> {
-                    // Log the raw message for debug
-                    log.trace("Raw message: "+arg);
+                socket.emit("SubAdd", eventArgs);
+            })
+            .on("m", args -> Stream.of(args).forEach(arg -> {
+                // Log the raw message for debug
+                log.trace("Raw message: "+arg);
 
-                    CryptoCompareResponse response = CryptoCompareResponse.unpack((String) arg);
-                    if (response.getMessageType() == 5 && (response.getFlag() == 1 || response.getFlag() == 2)) {
-                        updatePricing(response);
-                    }
-                }))
-                .on(Socket.EVENT_DISCONNECT, args -> log.info("Received disconnect event"));
+                CryptoCompareResponse response = CryptoCompareResponse.unpack((String) arg);
+                if (response.getMessageType() == 5 && (response.getFlag() == 1 || response.getFlag() == 2)) {
+                    updatePricing(response);
+                }
+            }))
+            .on(Socket.EVENT_DISCONNECT, args -> log.info("Received disconnect event"));
 
         socket.connect();
     }

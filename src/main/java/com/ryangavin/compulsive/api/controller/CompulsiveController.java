@@ -5,6 +5,7 @@ import com.ryangavin.compulsive.api.service.AddressLookupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
@@ -34,9 +35,9 @@ public class CompulsiveController {
     }
 
     @RequestMapping("value/{crypto}/{address}/{fiat}")
-    public BigDecimal getValueOfAddress(@PathVariable String crypto,
-                                        @PathVariable String address,
-                                        @PathVariable String fiat) {
+    public @ResponseBody BigDecimal getValueOfAddress(@PathVariable String crypto,
+                                                      @PathVariable String address,
+                                                      @PathVariable String fiat) {
         return addressService.getValueForAddress(crypto, address, fiat);
     }
 

@@ -1,5 +1,6 @@
 package com.ryangavin.compulsive.api.address;
 
+import com.ryangavin.compulsive.api.vendor.btc.BtcClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,9 +13,12 @@ import java.math.BigDecimal;
 @Service
 public class BitcoinAddressService extends AbstractAddressService {
 
+    private final BtcClient btcClient;
+
     @Autowired
-    public BitcoinAddressService(AddressServiceRegistry addressServiceRegistry) {
+    public BitcoinAddressService(AddressServiceRegistry addressServiceRegistry, BtcClient btcClient) {
         super(addressServiceRegistry);
+        this.btcClient = btcClient;
     }
 
     @Override
@@ -24,6 +28,8 @@ public class BitcoinAddressService extends AbstractAddressService {
 
     @Override
     public BigDecimal getBalance(String address) {
-        return null;
+        return btcClient.getAddressInfo(address).getData().getBalance()
+                .setScale(16, BigDecimal.ROUND_HALF_UP)
+                .divide(BigDecimal.valueOf(100000000), BigDecimal.ROUND_HALF_UP);
     }
 }
